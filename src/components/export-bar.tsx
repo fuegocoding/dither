@@ -54,26 +54,29 @@ function settingsToParams(s: DitherSettings): URLSearchParams {
 }
 
 function settingsFromParams(p: URLSearchParams): Partial<DitherSettings> {
+  const s: Partial<DitherSettings> = {};
   const get = (k: string) => p.get(k);
-  return {
-    ditherMode: (get("m") as DitherSettings["ditherMode"]) || undefined,
-    colorMode: (get("c") as DitherSettings["colorMode"]) || undefined,
-    gridSize: get("g") ? Number(get("g")) : undefined,
-    pixelRatio: get("p") ? Number(get("p")) : undefined,
-    threshold: get("t") ? Number(get("t")) : undefined,
-    brightness: get("b") ? Number(get("b")) : undefined,
-    contrast: get("k") ? Number(get("k")) : undefined,
-    invert: get("i") === "1",
-    animated: get("a") === "1",
-    animationSpeed: get("as") ? Number(get("as")) : undefined,
-    primaryColor: get("pc") || undefined,
-    secondaryColor: get("sc") || undefined,
-    objectFit: (get("f") as DitherSettings["objectFit"]) || undefined,
-    backgroundColor: get("bg") || "transparent",
-    customPalette: get("pal")
-      ? get("pal")!.split("-").filter(Boolean)
-      : undefined,
-  };
+
+  if (p.has("m")) s.ditherMode = get("m") as DitherSettings["ditherMode"];
+  if (p.has("c")) s.colorMode = get("c") as DitherSettings["colorMode"];
+  if (p.has("g")) s.gridSize = Number(get("g"));
+  if (p.has("p")) s.pixelRatio = Number(get("p"));
+  if (p.has("t")) s.threshold = Number(get("t"));
+  if (p.has("b")) s.brightness = Number(get("b"));
+  if (p.has("k")) s.contrast = Number(get("k"));
+  if (p.has("i")) s.invert = get("i") === "1";
+  if (p.has("a")) s.animated = get("a") === "1";
+  if (p.has("as")) s.animationSpeed = Number(get("as"));
+  if (p.has("pc")) s.primaryColor = get("pc") as string;
+  if (p.has("sc")) s.secondaryColor = get("sc") as string;
+  if (p.has("f")) s.objectFit = get("f") as DitherSettings["objectFit"];
+  if (p.has("bg")) s.backgroundColor = get("bg") as string;
+  if (p.has("pal")) {
+    const pal = get("pal");
+    if (pal) s.customPalette = pal.split("-").filter(Boolean);
+  }
+
+  return s;
 }
 
 export function settingsToShareUrl(settings: DitherSettings): string {
