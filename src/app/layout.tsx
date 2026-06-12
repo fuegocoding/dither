@@ -18,6 +18,9 @@ export const metadata: Metadata = {
   title: "Dither | fuego.im",
   description:
     "Drop an image, dial in the settings, and ship a pixel-perfect dither. Dual color, palette, halftone, noise, crosshatch and animation modes — all in the browser.",
+  icons: {
+    icon: "/icon.jpg",
+  },
 };
 
 export default function RootLayout({

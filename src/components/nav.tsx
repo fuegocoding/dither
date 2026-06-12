@@ -6,7 +6,6 @@ import {
   IconSun,
   IconMoon,
   IconBrandGithub,
-  IconBolt,
 } from "@tabler/icons-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -44,10 +43,17 @@ export function Nav() {
   return (
     <nav className="sticky top-0 z-50 border-b border-border bg-background/60 backdrop-blur-xl">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-8">
-        <Link href="/" className="flex items-center gap-2.5">
-          <div className="flex size-8 items-center justify-center border border-primary bg-primary text-primary-foreground">
-            <IconBolt className="size-4" stroke={3} />
-          </div>
+        <Link
+          href="https://fuego.im"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2.5"
+        >
+          <img
+            alt="Fuego"
+            className="size-8 rounded-full border border-border"
+            src="https://avatars.githubusercontent.com/u/138329152?v=4"
+          />
           <div className="flex flex-col leading-none">
             <span className="font-sans text-sm font-black tracking-tight">
               dither
@@ -60,7 +66,7 @@ export function Nav() {
         <div className="flex items-center gap-1">
           <Button asChild variant="ghost" size="icon" aria-label="GitHub">
             <a
-              href="https://github.com/fuegocoding"
+              href="https://github.com/fuegocoding/dither"
               target="_blank"
               rel="noopener noreferrer"
             >

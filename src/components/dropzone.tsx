@@ -12,8 +12,7 @@ interface DropzoneProps {
   onSample?: () => void;
 }
 
-const SAMPLE_IMAGE =
-  "https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=1600&auto=format&fit=crop";
+const SAMPLE_IMAGE = "/sample.jpg";
 
 export function Dropzone({
   onFile,

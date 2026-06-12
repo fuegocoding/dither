@@ -128,18 +128,23 @@ export function useDitherPreview(
   const render = useCallback(
     (settings: DitherSettings, maxDim = 720) => {
       if (!imgRef.current || !image || !canvasRef.current) return;
-      const { w, h } = sizeFor(maxDim);
-      const dpr = window.devicePixelRatio || 1;
-      const canvas = canvasRef.current;
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return;
-      ctx.resetTransform();
-      ctx.scale(dpr, dpr);
-      renderDither(imgRef.current, canvas, settings, 0);
+      try {
+        const { w, h } = sizeFor(maxDim);
+        if (w === 0 || h === 0) return;
+        const dpr = window.devicePixelRatio || 1;
+        const canvas = canvasRef.current;
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+        ctx.resetTransform();
+        ctx.scale(dpr, dpr);
+        renderDither(imgRef.current, canvas, settings, 0);
+      } catch (e) {
+        console.error("Dither render failed:", e);
+      }
     },
     [imgRef, image, sizeFor],
   );
@@ -147,12 +152,18 @@ export function useDitherPreview(
   const renderFull = useCallback(
     (settings: DitherSettings, maxDim = 2400): HTMLCanvasElement | null => {
       if (!imgRef.current || !image) return null;
-      const { w, h } = sizeFor(maxDim);
-      const canvas = document.createElement("canvas");
-      canvas.width = w;
-      canvas.height = h;
-      renderDither(imgRef.current, canvas, settings, 0);
-      return canvas;
+      try {
+        const { w, h } = sizeFor(maxDim);
+        if (w === 0 || h === 0) return null;
+        const canvas = document.createElement("canvas");
+        canvas.width = w;
+        canvas.height = h;
+        renderDither(imgRef.current, canvas, settings, 0);
+        return canvas;
+      } catch (e) {
+        console.error("Dither renderFull failed:", e);
+        return null;
+      }
     },
     [imgRef, image, sizeFor],
   );
@@ -160,32 +171,43 @@ export function useDitherPreview(
   const startAnimation = useCallback(
     (settings: DitherSettings, maxDim = 720) => {
       if (!imgRef.current || !image || !canvasRef.current) return () => {};
-      if (animationRef.current) cancelAnimationFrame(animationRef.current);
-      timeRef.current = 0;
-      const { w, h } = sizeFor(maxDim);
-      const dpr = window.devicePixelRatio || 1;
-      const canvas = canvasRef.current;
-      canvas.width = Math.floor(w * dpr);
-      canvas.height = Math.floor(h * dpr);
-      canvas.style.width = `${w}px`;
-      canvas.style.height = `${h}px`;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) return () => {};
-      ctx.resetTransform();
-      ctx.scale(dpr, dpr);
+      try {
+        if (animationRef.current) cancelAnimationFrame(animationRef.current);
+        timeRef.current = 0;
+        const { w, h } = sizeFor(maxDim);
+        if (w === 0 || h === 0) return () => {};
+        const dpr = window.devicePixelRatio || 1;
+        const canvas = canvasRef.current;
+        canvas.width = Math.floor(w * dpr);
+        canvas.height = Math.floor(h * dpr);
+        canvas.style.width = `${w}px`;
+        canvas.style.height = `${h}px`;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return () => {};
+        ctx.resetTransform();
+        ctx.scale(dpr, dpr);
 
-      const loop = () => {
-        if (!imgRef.current || !image || !canvasRef.current) return;
-        timeRef.current += settings.animationSpeed;
-        renderDither(
-          imgRef.current,
-          canvasRef.current,
-          settings,
-          timeRef.current,
-        );
-        animationRef.current = requestAnimationFrame(loop);
-      };
-      loop();
+        const loop = () => {
+          if (!imgRef.current || !image || !canvasRef.current) return;
+          try {
+            timeRef.current += settings.animationSpeed;
+            renderDither(
+              imgRef.current,
+              canvasRef.current,
+              settings,
+              timeRef.current,
+            );
+          } catch (e) {
+            console.error("Dither animation frame failed:", e);
+            return;
+          }
+          animationRef.current = requestAnimationFrame(loop);
+        };
+        loop();
+      } catch (e) {
+        console.error("Dither startAnimation failed:", e);
+        return () => {};
+      }
       return () => {
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
