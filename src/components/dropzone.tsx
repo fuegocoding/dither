@@ -101,10 +101,10 @@ export function Dropzone({
       onDrop={onDrop}
       onClick={() => inputRef.current?.click()}
       className={cn(
-        "group relative flex cursor-pointer flex-col items-center justify-center gap-4 border-2 border-dashed bg-muted/30 px-6 py-16 text-center transition-all",
+        "group relative flex cursor-pointer flex-col items-center justify-center gap-4 border-2 border-dashed bg-muted/60 px-6 py-16 text-center transition-all backdrop-blur-sm",
         isOver
           ? "border-primary bg-primary/5"
-          : "border-border hover:border-primary/50 hover:bg-muted/50",
+          : "border-border hover:border-primary/50 hover:bg-muted/70",
         error && "border-destructive/50",
         className,
       )}

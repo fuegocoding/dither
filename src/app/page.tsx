@@ -124,7 +124,7 @@ export default function Home() {
           <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col items-center justify-center px-4 py-12 md:px-6 md:py-16">
             <div className="mb-6 flex flex-col items-center gap-2 text-center">
               <h1 className="font-sans text-4xl font-black tracking-tight md:text-6xl">
-                dither
+                Dither
               </h1>
               <p className="max-w-xl text-sm text-muted-foreground md:text-base">
                 Drop an image, dial in the settings, and ship a pixel-perfect

@@ -2,6 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   IconSun,
   IconMoon,
@@ -40,8 +41,23 @@ function ThemeToggle() {
 }
 
 export function Nav() {
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background/60 backdrop-blur-xl">
+    <nav
+      className={cn(
+        "sticky top-0 z-50 transition-all duration-300",
+        scrolled
+          ? "border-b border-border bg-background/60 backdrop-blur-xl"
+          : "border-b border-transparent bg-transparent backdrop-blur-0",
+      )}
+    >
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6 md:px-8">
         <Link
           href="https://fuego.im"
@@ -56,7 +72,7 @@ export function Nav() {
           />
           <div className="flex flex-col leading-none">
             <span className="font-sans text-sm font-black tracking-tight">
-              dither
+              Dither
             </span>
             <span className="font-mono text-[9px] uppercase tracking-[0.2em] text-muted-foreground">
               by fuego
