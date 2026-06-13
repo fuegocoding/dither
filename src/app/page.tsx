@@ -105,7 +105,7 @@ export default function Home() {
       <main>
         <section
           ref={heroRef}
-          className="relative isolate min-h-[calc(100vh-4rem)] w-full overflow-hidden border-b border-border"
+          className="relative isolate min-h-screen w-full overflow-hidden border-b border-border"
         >
           <div className="pointer-events-none absolute inset-0 -z-10">
             <img
@@ -121,7 +121,7 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-b from-background/30 via-background/40 to-background" />
           </div>
 
-          <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-7xl flex-col items-center justify-center px-4 py-12 md:px-6 md:py-16">
+          <div className="mx-auto flex min-h-screen max-w-7xl flex-col items-center justify-center px-4 pt-24 pb-12 md:px-6 md:pt-32 md:pb-16">
             <div className="mb-6 flex flex-col items-center gap-2 text-center">
               <h1 className="font-sans text-4xl font-black tracking-tight md:text-6xl">
                 Dither

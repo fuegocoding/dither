@@ -52,7 +52,7 @@ export function Nav() {
   return (
     <nav
       className={cn(
-        "sticky top-0 z-50 transition-all duration-300",
+        "fixed top-0 w-full z-50 transition-all duration-300",
         scrolled
           ? "border-b border-border bg-background/60 backdrop-blur-xl"
           : "border-b border-transparent bg-transparent backdrop-blur-0",
