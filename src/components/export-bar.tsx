@@ -90,43 +90,29 @@ function settingsToParams(s: DitherSettings): URLSearchParams {
 }
 
 function settingsFromParams(p: URLSearchParams): Partial<DitherSettings> {
+  const s: Partial<DitherSettings> = {};
   const get = (k: string) => p.get(k);
-  const num = (k: string) => {
-    const v = get(k);
-    if (v === null || v === "") return undefined;
-    const n = Number(v);
-    return Number.isFinite(n) ? n : undefined;
-  };
-  const out: Partial<DitherSettings> = {};
-  const m = get("m");
-  if (m) out.ditherMode = m as DitherSettings["ditherMode"];
-  const c = get("c");
-  if (c) out.colorMode = c as DitherSettings["colorMode"];
-  const g = num("g");
-  if (g !== undefined) out.gridSize = g;
-  const p2 = num("p");
-  if (p2 !== undefined) out.pixelRatio = p2;
-  const t = num("t");
-  if (t !== undefined) out.threshold = t;
-  const b = num("b");
-  if (b !== undefined) out.brightness = b;
-  const k = num("k");
-  if (k !== undefined) out.contrast = k;
-  if (get("i") === "1") out.invert = true;
-  if (get("a") === "1") out.animated = true;
-  const as = num("as");
-  if (as !== undefined) out.animationSpeed = as;
-  const pc = get("pc");
-  if (pc) out.primaryColor = pc;
-  const sc = get("sc");
-  if (sc) out.secondaryColor = sc;
-  const f = get("f");
-  if (f) out.objectFit = f as DitherSettings["objectFit"];
-  const bg = get("bg");
-  if (bg) out.backgroundColor = bg;
-  const pal = get("pal");
-  if (pal) out.customPalette = pal.split("-").filter(Boolean);
-  return out;
+
+  if (p.has("m")) s.ditherMode = get("m") as DitherSettings["ditherMode"];
+  if (p.has("c")) s.colorMode = get("c") as DitherSettings["colorMode"];
+  if (p.has("g")) s.gridSize = Number(get("g"));
+  if (p.has("p")) s.pixelRatio = Number(get("p"));
+  if (p.has("t")) s.threshold = Number(get("t"));
+  if (p.has("b")) s.brightness = Number(get("b"));
+  if (p.has("k")) s.contrast = Number(get("k"));
+  if (p.has("i")) s.invert = get("i") === "1";
+  if (p.has("a")) s.animated = get("a") === "1";
+  if (p.has("as")) s.animationSpeed = Number(get("as"));
+  if (p.has("pc")) s.primaryColor = get("pc") as string;
+  if (p.has("sc")) s.secondaryColor = get("sc") as string;
+  if (p.has("f")) s.objectFit = get("f") as DitherSettings["objectFit"];
+  if (p.has("bg")) s.backgroundColor = get("bg") as string;
+  if (p.has("pal")) {
+    const pal = get("pal");
+    if (pal) s.customPalette = pal.split("-").filter(Boolean);
+  }
+
+  return s;
 }
 
 export function settingsToShareUrl(settings: DitherSettings): string {

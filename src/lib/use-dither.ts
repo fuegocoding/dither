@@ -140,7 +140,7 @@ export function useDitherPreview(
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
         ctx.resetTransform();
-        ctx.scale(dpr, dpr);
+
         renderDither(imgRef.current, canvas, settings, 0);
       } catch (e) {
         console.error("Dither render failed:", e);
@@ -185,12 +185,14 @@ export function useDitherPreview(
         const ctx = canvas.getContext("2d");
         if (!ctx) return () => {};
         ctx.resetTransform();
-        ctx.scale(dpr, dpr);
+
 
         const loop = () => {
           if (!imgRef.current || !image || !canvasRef.current) return;
           try {
-            timeRef.current += settings.animationSpeed ?? 0.02;
+
+            timeRef.current += settings.animationSpeed;
+
             renderDither(
               imgRef.current,
               canvasRef.current,

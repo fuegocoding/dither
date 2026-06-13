@@ -187,18 +187,24 @@ export function renderDither(
       const luminance = getLuminance(r, g, b) / 255;
 
       let ditherThreshold: number;
-      const matrixX = Math.floor(x / gridSize) % matrixSize;
-      const matrixY = Math.floor(y / gridSize) % matrixSize;
+
+      const timeOffset = time * 20;
+      const matrixX = Math.floor((x + timeOffset) / gridSize) % matrixSize;
+      const matrixY = Math.floor((y + timeOffset) / gridSize) % matrixSize;
+
+      // Handle potential negative modulo results just in case (though timeOffset is positive)
+      const safeMatrixX = matrixX < 0 ? matrixX + matrixSize : matrixX;
+      const safeMatrixY = matrixY < 0 ? matrixY + matrixSize : matrixY;
 
       switch (ditherMode) {
         case "bayer":
-          ditherThreshold = bayerMatrix[matrixY][matrixX] / matrixScale;
+          ditherThreshold = bayerMatrix[safeMatrixY][safeMatrixX] / matrixScale;
           break;
         case "halftone": {
           const angle = Math.PI / 4;
           const scale = gridSize * 2;
-          const rotX = x * Math.cos(angle) + y * Math.sin(angle);
-          const rotY = -x * Math.sin(angle) + y * Math.cos(angle);
+          const rotX = (x + timeOffset) * Math.cos(angle) + (y + timeOffset) * Math.sin(angle);
+          const rotY = -(x + timeOffset) * Math.sin(angle) + (y + timeOffset) * Math.cos(angle);
           const pattern =
             (Math.sin(rotX / scale) + Math.sin(rotY / scale) + 2) / 4;
           ditherThreshold = pattern;
@@ -211,14 +217,14 @@ export function renderDither(
           break;
         }
         case "crosshatch": {
-          const line1 = (x + y) % (gridSize * 2) < gridSize ? 1 : 0;
+          const line1 = Math.abs((x + y + timeOffset) % (gridSize * 2)) < gridSize ? 1 : 0;
           const line2 =
-            (x - y + gridSize * 4) % (gridSize * 2) < gridSize ? 1 : 0;
+            Math.abs((x - y + gridSize * 4 + timeOffset) % (gridSize * 2)) < gridSize ? 1 : 0;
           ditherThreshold = (line1 + line2) / 2;
           break;
         }
         default:
-          ditherThreshold = bayerMatrix[matrixY][matrixX] / matrixScale;
+          ditherThreshold = bayerMatrix[safeMatrixY][safeMatrixX] / matrixScale;
       }
 
       ditherThreshold = ditherThreshold * (1 - threshold) + threshold * 0.5;
