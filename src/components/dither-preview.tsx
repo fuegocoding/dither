@@ -1,14 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { DitherImage, useDitherPreview } from "@/lib/use-dither";
 import { DitherSettings } from "@/lib/dither-types";
+import { duotoneVariantSettings } from "@/components/export-bar";
 
 interface DitherPreviewProps {
   image: DitherImage;
   imgRef: React.RefObject<HTMLImageElement | null>;
   settings: DitherSettings;
+  siteTheme?: "light" | "dark" | null;
   className?: string;
   maxDim?: number;
   showCheckerboard?: boolean;
@@ -18,6 +20,7 @@ export function DitherPreview({
   image,
   imgRef,
   settings,
+  siteTheme,
   className,
   maxDim = 720,
   showCheckerboard = true,
@@ -46,34 +49,42 @@ export function DitherPreview({
     return () => ro.disconnect();
   }, []);
 
-  const customPaletteKey = settings.customPalette.join(",");
+  const isDuotone = settings.colorMode === "duotone";
+  const effectiveSettings = useMemo(() => {
+    if (isDuotone && siteTheme) {
+      return duotoneVariantSettings(settings, siteTheme);
+    }
+    return settings;
+  }, [isDuotone, siteTheme, settings]);
+
+  const customPaletteKey = effectiveSettings.customPalette.join(",");
 
   useEffect(() => {
     stopAnimation();
-    if (settings.animated) {
-      const stop = startAnimation(settings, maxDim);
+    if (effectiveSettings.animated) {
+      const stop = startAnimation(effectiveSettings, maxDim);
       return stop;
     } else {
-      render(settings, maxDim);
+      render(effectiveSettings, maxDim);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     image.src,
-    settings.gridSize,
-    settings.ditherMode,
-    settings.colorMode,
-    settings.invert,
-    settings.pixelRatio,
-    settings.primaryColor,
-    settings.secondaryColor,
+    effectiveSettings.gridSize,
+    effectiveSettings.ditherMode,
+    effectiveSettings.colorMode,
+    effectiveSettings.invert,
+    effectiveSettings.pixelRatio,
+    effectiveSettings.primaryColor,
+    effectiveSettings.secondaryColor,
     customPaletteKey,
-    settings.brightness,
-    settings.contrast,
-    settings.threshold,
-    settings.backgroundColor,
-    settings.animated,
-    settings.animationSpeed,
-    settings.objectFit,
+    effectiveSettings.brightness,
+    effectiveSettings.contrast,
+    effectiveSettings.threshold,
+    effectiveSettings.backgroundColor,
+    effectiveSettings.animated,
+    effectiveSettings.animationSpeed,
+    effectiveSettings.objectFit,
     maxDim,
   ]);
 
@@ -82,12 +93,14 @@ export function DitherPreview({
       ref={containerRef}
       className={cn(
         "relative flex items-center justify-center overflow-hidden border border-border bg-card",
-        showCheckerboard && settings.backgroundColor === "transparent" && "checkered-bg",
+        showCheckerboard &&
+          effectiveSettings.backgroundColor === "transparent" &&
+          "checkered-bg",
         className,
       )}
       style={
-        settings.backgroundColor !== "transparent"
-          ? { backgroundColor: settings.backgroundColor }
+        effectiveSettings.backgroundColor !== "transparent"
+          ? { backgroundColor: effectiveSettings.backgroundColor }
           : undefined
       }
     >

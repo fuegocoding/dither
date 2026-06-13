@@ -201,10 +201,10 @@ export function SettingsPanel({
 
         <ControlRow
           label="Pixel size"
-          value={`${Math.max(1, Math.floor(settings.gridSize * settings.pixelRatio))}px`}
+          value={`${Math.max(1, Math.floor((settings.gridSize ?? 2) * (settings.pixelRatio ?? 1)))}px`}
         >
           <Slider
-            value={[settings.gridSize]}
+            value={[settings.gridSize ?? 2]}
             min={1}
             max={10}
             step={1}
@@ -214,10 +214,10 @@ export function SettingsPanel({
 
         <ControlRow
           label="Threshold"
-          value={settings.threshold.toFixed(2)}
+          value={(settings.threshold ?? 0).toFixed(2)}
         >
           <Slider
-            value={[settings.threshold]}
+            value={[settings.threshold ?? 0]}
             min={0}
             max={1}
             step={0.01}
@@ -393,13 +393,13 @@ export function SettingsPanel({
         <ControlRow
           label="Brightness"
           value={
-            settings.brightness === 0
+            (settings.brightness ?? 0) === 0
               ? "0"
-              : `${settings.brightness > 0 ? "+" : ""}${settings.brightness.toFixed(2)}`
+              : `${(settings.brightness ?? 0) > 0 ? "+" : ""}${(settings.brightness ?? 0).toFixed(2)}`
           }
         >
           <Slider
-            value={[settings.brightness]}
+            value={[settings.brightness ?? 0]}
             min={-1}
             max={1}
             step={0.01}
@@ -409,10 +409,10 @@ export function SettingsPanel({
 
         <ControlRow
           label="Contrast"
-          value={settings.contrast.toFixed(2)}
+          value={(settings.contrast ?? 1).toFixed(2)}
         >
           <Slider
-            value={[settings.contrast]}
+            value={[settings.contrast ?? 1]}
             min={0}
             max={2}
             step={0.01}
@@ -460,12 +460,12 @@ export function SettingsPanel({
         {settings.animated && (
           <ControlRow
             label="Speed"
-            value={settings.animationSpeed.toFixed(3)}
+            value={(settings.animationSpeed ?? 0.02).toFixed(3)}
           >
-            <Slider
-              value={[settings.animationSpeed]}
-              min={0.005}
-              max={0.1}
+          <Slider
+            value={[settings.animationSpeed ?? 0.02]}
+            min={0.005}
+            max={0.1}
               step={0.005}
               onValueChange={([v]) => update({ animationSpeed: v })}
             />

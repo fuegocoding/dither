@@ -190,7 +190,7 @@ export function useDitherPreview(
         const loop = () => {
           if (!imgRef.current || !image || !canvasRef.current) return;
           try {
-            timeRef.current += settings.animationSpeed;
+            timeRef.current += settings.animationSpeed ?? 0.02;
             renderDither(
               imgRef.current,
               canvasRef.current,

@@ -19,6 +19,7 @@ interface ExportBarProps {
   image: DitherImage;
   imgRef: React.RefObject<HTMLImageElement | null>;
   settings: DitherSettings;
+  siteTheme?: "light" | "dark" | null;
   className?: string;
 }
 
@@ -31,6 +32,41 @@ function downloadBlob(blob: Blob, filename: string) {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function getLuminanceFromHex(color: string): number {
+  const hex = color.startsWith("#") ? color.slice(1) : color;
+  const r =
+    hex.length === 3
+      ? parseInt(hex[0] + hex[0], 16)
+      : parseInt(hex.slice(0, 2), 16);
+  const g =
+    hex.length === 3
+      ? parseInt(hex[1] + hex[1], 16)
+      : parseInt(hex.slice(2, 4), 16);
+  const b =
+    hex.length === 3
+      ? parseInt(hex[2] + hex[2], 16)
+      : parseInt(hex.slice(4, 6), 16);
+  return 0.299 * r + 0.587 * g + 0.114 * b;
+}
+
+export function duotoneVariantSettings(
+  settings: DitherSettings,
+  variant: "light" | "dark",
+): DitherSettings {
+  const lightBg = "#ffffff";
+  const darkBg = "#000000";
+  const primaryLum = getLuminanceFromHex(settings.primaryColor);
+  const secondaryLum = getLuminanceFromHex(settings.secondaryColor);
+  const dark = primaryLum <= secondaryLum ? settings.primaryColor : settings.secondaryColor;
+  const light = primaryLum <= secondaryLum ? settings.secondaryColor : settings.primaryColor;
+  return {
+    ...settings,
+    primaryColor: dark,
+    secondaryColor: light,
+    backgroundColor: variant === "light" ? lightBg : darkBg,
+  };
 }
 
 function settingsToParams(s: DitherSettings): URLSearchParams {
@@ -55,25 +91,42 @@ function settingsToParams(s: DitherSettings): URLSearchParams {
 
 function settingsFromParams(p: URLSearchParams): Partial<DitherSettings> {
   const get = (k: string) => p.get(k);
-  return {
-    ditherMode: (get("m") as DitherSettings["ditherMode"]) || undefined,
-    colorMode: (get("c") as DitherSettings["colorMode"]) || undefined,
-    gridSize: get("g") ? Number(get("g")) : undefined,
-    pixelRatio: get("p") ? Number(get("p")) : undefined,
-    threshold: get("t") ? Number(get("t")) : undefined,
-    brightness: get("b") ? Number(get("b")) : undefined,
-    contrast: get("k") ? Number(get("k")) : undefined,
-    invert: get("i") === "1",
-    animated: get("a") === "1",
-    animationSpeed: get("as") ? Number(get("as")) : undefined,
-    primaryColor: get("pc") || undefined,
-    secondaryColor: get("sc") || undefined,
-    objectFit: (get("f") as DitherSettings["objectFit"]) || undefined,
-    backgroundColor: get("bg") || "transparent",
-    customPalette: get("pal")
-      ? get("pal")!.split("-").filter(Boolean)
-      : undefined,
+  const num = (k: string) => {
+    const v = get(k);
+    if (v === null || v === "") return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
   };
+  const out: Partial<DitherSettings> = {};
+  const m = get("m");
+  if (m) out.ditherMode = m as DitherSettings["ditherMode"];
+  const c = get("c");
+  if (c) out.colorMode = c as DitherSettings["colorMode"];
+  const g = num("g");
+  if (g !== undefined) out.gridSize = g;
+  const p2 = num("p");
+  if (p2 !== undefined) out.pixelRatio = p2;
+  const t = num("t");
+  if (t !== undefined) out.threshold = t;
+  const b = num("b");
+  if (b !== undefined) out.brightness = b;
+  const k = num("k");
+  if (k !== undefined) out.contrast = k;
+  if (get("i") === "1") out.invert = true;
+  if (get("a") === "1") out.animated = true;
+  const as = num("as");
+  if (as !== undefined) out.animationSpeed = as;
+  const pc = get("pc");
+  if (pc) out.primaryColor = pc;
+  const sc = get("sc");
+  if (sc) out.secondaryColor = sc;
+  const f = get("f");
+  if (f) out.objectFit = f as DitherSettings["objectFit"];
+  const bg = get("bg");
+  if (bg) out.backgroundColor = bg;
+  const pal = get("pal");
+  if (pal) out.customPalette = pal.split("-").filter(Boolean);
+  return out;
 }
 
 export function settingsToShareUrl(settings: DitherSettings): string {
@@ -97,15 +150,21 @@ export function ExportBar({
   image,
   imgRef,
   settings,
+  siteTheme,
   className,
 }: ExportBarProps) {
   const [downloading, setDownloading] = useState(false);
   const [exportSize, setExportSize] = useState<"source" | "1080" | "2400">(
     "source",
   );
+  const [exportMode, setExportMode] = useState<"single" | "dual">("single");
   const [copied, setCopied] = useState<"link" | "embed" | null>(null);
   const [exportError, setExportError] = useState<string | null>(null);
   const [shareMenuOpen, setShareMenuOpen] = useState(false);
+
+  const isDuotone = settings.colorMode === "duotone";
+  const effectiveExportMode: "single" | "dual" =
+    isDuotone && exportMode === "dual" ? "dual" : "single";
 
   const exportDims = useMemo(() => {
     if (exportSize === "source") {
@@ -132,19 +191,34 @@ export function ExportBar({
     setDownloading(true);
     setExportError(null);
     try {
-      const canvas = document.createElement("canvas");
-      canvas.width = exportDims.w;
-      canvas.height = exportDims.h;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("No 2d context");
-      renderDither(imgRef.current, canvas, settings, 0);
-
-      const blob = await new Promise<Blob | null>((resolve) =>
-        canvas.toBlob(resolve, "image/png"),
-      );
-      if (!blob) throw new Error("Could not create blob");
       const baseName = image.name.replace(/\.[^.]+$/, "");
-      downloadBlob(blob, `${baseName}-dither.png`);
+      const singleSettings =
+        isDuotone && siteTheme ? duotoneVariantSettings(settings, siteTheme) : settings;
+      const variants: { suffix: string; settings: DitherSettings }[] =
+        effectiveExportMode === "dual" && isDuotone
+          ? [
+              { suffix: "light", settings: duotoneVariantSettings(settings, "light") },
+              { suffix: "dark", settings: duotoneVariantSettings(settings, "dark") },
+            ]
+          : [{ suffix: "", settings: singleSettings }];
+
+      for (const v of variants) {
+        const canvas = document.createElement("canvas");
+        canvas.width = exportDims.w;
+        canvas.height = exportDims.h;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("No 2d context");
+        renderDither(imgRef.current, canvas, v.settings, 0);
+
+        const blob = await new Promise<Blob | null>((resolve) =>
+          canvas.toBlob(resolve, "image/png"),
+        );
+        if (!blob) throw new Error("Could not create blob");
+        const filename = v.suffix
+          ? `${baseName}-dither-${v.suffix}.png`
+          : `${baseName}-dither.png`;
+        downloadBlob(blob, filename);
+      }
     } catch (e) {
       setExportError(e instanceof Error ? e.message : "Export failed");
     } finally {
@@ -195,6 +269,26 @@ export function ExportBar({
           ))}
         </div>
 
+        {isDuotone && (
+          <div className="flex items-center gap-1 rounded-none border border-border bg-background p-0.5">
+            {(["single", "dual"] as const).map((mode) => (
+              <button
+                key={mode}
+                type="button"
+                onClick={() => setExportMode(mode)}
+                className={cn(
+                  "px-2 py-1 font-mono text-[10px] uppercase tracking-wider transition-all",
+                  exportMode === mode
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {mode === "single" ? "Single" : "Light + Dark"}
+              </button>
+            ))}
+          </div>
+        )}
+
         <Button
           variant="outline"
           size="default"
@@ -211,9 +305,11 @@ export function ExportBar({
         </span>
         <span>·</span>
         <span>
-          {settings.colorMode === "duotone"
-            ? "Duotone"
-            : settings.colorMode === "custom"
+          {effectiveExportMode === "dual" && isDuotone
+            ? "Light + Dark"
+            : settings.colorMode === "duotone"
+              ? "Duotone"
+              : settings.colorMode === "custom"
               ? `${settings.customPalette.length}-color palette`
               : settings.colorMode}
         </span>

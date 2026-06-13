@@ -9,6 +9,8 @@ A pixel-perfect dithering utility that runs entirely in the browser. Drop an ima
 - **4 color modes** — Duotone, Grayscale, Custom Palette, Original
 - **9 preset palettes** — Game Boy, CGA, Mac SE, Magma, Forest, Cyber, Blueprint…
 - **Custom palette editor** — up to 8 colors, add/remove live
+- **Duotone theme sync** — in duotone mode, the preview swaps between a light and dark variant as you toggle the site theme
+- **Light + Dark export** — in duotone mode, download both variants (white-bg + black-bg) in a single click
 - **Animation** — animated noise dither for TV-static vibes
 - **Fine controls** — pixel size, threshold, brightness, contrast, invert, fit, background
 - **Download as PNG** — at source resolution, 1080p, or 2400p

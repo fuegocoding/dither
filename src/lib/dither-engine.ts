@@ -44,9 +44,9 @@ export interface ResolvedSettings {
 
 export function resolveSettings(settings: DitherSettings): ResolvedSettings {
   return {
-    parsedPrimaryColor: parseColor(settings.primaryColor),
-    parsedSecondaryColor: parseColor(settings.secondaryColor),
-    parsedCustomPalette: settings.customPalette.map(parseColor),
+    parsedPrimaryColor: parseColor(settings.primaryColor ?? "#000000"),
+    parsedSecondaryColor: parseColor(settings.secondaryColor ?? "#ffffff"),
+    parsedCustomPalette: (settings.customPalette ?? []).map(parseColor),
   };
 }
 
@@ -121,8 +121,24 @@ export function renderDither(
 
   if (displayWidth === 0 || displayHeight === 0) return;
 
-  if (settings.backgroundColor !== "transparent") {
-    ctx.fillStyle = settings.backgroundColor;
+  const gridSize = settings.gridSize ?? 2;
+  const ditherMode = settings.ditherMode ?? "bayer";
+  const colorMode = settings.colorMode ?? "duotone";
+  const invert = settings.invert ?? false;
+  const pixelRatio = settings.pixelRatio ?? 1;
+  const brightness = settings.brightness ?? 0;
+  const contrast = settings.contrast ?? 1;
+  const threshold = settings.threshold ?? 0.5;
+  const backgroundColor = settings.backgroundColor ?? "transparent";
+  const objectFit = settings.objectFit ?? "cover";
+
+  const effectivePixelSize = Math.max(1, Math.floor(gridSize * pixelRatio));
+  const matrixSize = gridSize <= 4 ? 4 : 8;
+  const bayerMatrix = gridSize <= 4 ? BAYER_MATRIX_4x4 : BAYER_MATRIX_8x8;
+  const matrixScale = matrixSize === 4 ? 16 : 64;
+
+  if (backgroundColor !== "transparent") {
+    ctx.fillStyle = backgroundColor;
     ctx.fillRect(0, 0, displayWidth, displayHeight);
   } else {
     ctx.clearRect(0, 0, displayWidth, displayHeight);
@@ -130,7 +146,7 @@ export function renderDither(
 
   const off = drawSourceToOffscreen(
     source,
-    settings.objectFit,
+    objectFit,
     displayWidth,
     displayHeight,
   );
@@ -150,21 +166,6 @@ export function renderDither(
   const sourceHeight = displayHeight;
 
   const resolved = resolveSettings(settings);
-  const {
-    gridSize,
-    ditherMode,
-    colorMode,
-    invert,
-    pixelRatio,
-    brightness,
-    contrast,
-    threshold,
-  } = settings;
-
-  const effectivePixelSize = Math.max(1, Math.floor(gridSize * pixelRatio));
-  const matrixSize = gridSize <= 4 ? 4 : 8;
-  const bayerMatrix = gridSize <= 4 ? BAYER_MATRIX_4x4 : BAYER_MATRIX_8x8;
-  const matrixScale = matrixSize === 4 ? 16 : 64;
 
   for (let y = 0; y < displayHeight; y += effectivePixelSize) {
     for (let x = 0; x < displayWidth; x += effectivePixelSize) {

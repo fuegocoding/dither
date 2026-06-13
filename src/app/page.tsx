@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -23,6 +24,17 @@ export default function Home() {
     useDitherImage();
   const [settings, setSettings] = useState<DitherSettings>(DEFAULT_SETTINGS);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const { resolvedTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+  const siteTheme: "light" | "dark" | null =
+    mounted && (resolvedTheme === "light" || resolvedTheme === "dark")
+      ? resolvedTheme
+      : null;
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fromUrl = settingsFromUrl();
@@ -75,8 +87,8 @@ export default function Home() {
                   dither
                 </h1>
                 <p className="max-w-2xl text-sm text-muted-foreground">
-                  Drop an image, dial in the settings, ship a dither. Runs
-                  entirely in your browser — no upload, no signup.
+                  Drop an image, dial in the settings, and export a dithered version for use in your projects. 
+                  All processing is done client-side, so your images never leave your device.
                 </p>
               </div>
               <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
@@ -140,6 +152,7 @@ export default function Home() {
                     image={image}
                     imgRef={imgRef}
                     settings={settings}
+                    siteTheme={siteTheme}
                     className={cn(
                       "min-h-[400px] w-full",
                       isFullscreen
@@ -152,6 +165,7 @@ export default function Home() {
                     image={image}
                     imgRef={imgRef}
                     settings={settings}
+                    siteTheme={siteTheme}
                   />
                 </>
               ) : (
