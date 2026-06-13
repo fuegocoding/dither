@@ -93,7 +93,7 @@ export function DitherPreview({
     >
       <canvas
         ref={canvasRef}
-        className="block max-h-full max-w-full"
+        className="block max-h-full max-w-full object-contain"
         style={{ imageRendering: "pixelated" }}
         aria-label="Dithered image preview"
       />
