@@ -105,7 +105,7 @@ export default function Home() {
       <main>
         <section
           ref={heroRef}
-          className="relative isolate min-h-screen w-full overflow-hidden border-b border-border"
+          className="relative isolate min-h-screen w-full overflow-hidden"
         >
           <div className="pointer-events-none absolute inset-0 -z-10">
             <img
