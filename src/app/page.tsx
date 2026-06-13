@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ import { Nav } from "@/components/nav";
 import { Dropzone, SAMPLE_IMAGE } from "@/components/dropzone";
 import { DitherPreview } from "@/components/dither-preview";
 import { SettingsPanel } from "@/components/settings-panel";
-import { ExportBar, Footer, settingsFromUrl } from "@/components/export-bar";
+import { ExportBar, Footer, settingsFromUrl, duotoneVariantSettings } from "@/components/export-bar";
 import { useDitherImage } from "@/lib/use-dither";
 import { DEFAULT_SETTINGS, DitherSettings } from "@/lib/dither-types";
 
@@ -35,6 +35,14 @@ export default function Home() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
+
+  const isDuotone = settings.colorMode === "duotone";
+  const effectiveSettings = useMemo(() => {
+    if (isDuotone && siteTheme) {
+      return duotoneVariantSettings(settings, siteTheme);
+    }
+    return settings;
+  }, [isDuotone, siteTheme, settings]);
 
   useEffect(() => {
     const fromUrl = settingsFromUrl();
@@ -151,8 +159,7 @@ export default function Home() {
                   <DitherPreview
                     image={image}
                     imgRef={imgRef}
-                    settings={settings}
-                    siteTheme={siteTheme}
+                    settings={effectiveSettings}
                     className={cn(
                       "min-h-[400px] w-full",
                       isFullscreen
@@ -165,7 +172,7 @@ export default function Home() {
                     image={image}
                     imgRef={imgRef}
                     settings={settings}
-                    siteTheme={siteTheme}
+                    effectiveSettings={isDuotone && siteTheme ? effectiveSettings : undefined}
                   />
                 </>
               ) : (
@@ -191,6 +198,7 @@ export default function Home() {
               <CardContent className="p-5">
                 <SettingsPanel
                   settings={settings}
+                  effectiveSettings={isDuotone && siteTheme ? effectiveSettings : undefined}
                   onChange={setSettings}
                   onReset={onReset}
                 />

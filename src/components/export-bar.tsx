@@ -19,7 +19,7 @@ interface ExportBarProps {
   image: DitherImage;
   imgRef: React.RefObject<HTMLImageElement | null>;
   settings: DitherSettings;
-  siteTheme?: "light" | "dark" | null;
+  effectiveSettings?: DitherSettings;
   className?: string;
 }
 
@@ -34,38 +34,19 @@ function downloadBlob(blob: Blob, filename: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function getLuminanceFromHex(color: string): number {
-  const hex = color.startsWith("#") ? color.slice(1) : color;
-  const r =
-    hex.length === 3
-      ? parseInt(hex[0] + hex[0], 16)
-      : parseInt(hex.slice(0, 2), 16);
-  const g =
-    hex.length === 3
-      ? parseInt(hex[1] + hex[1], 16)
-      : parseInt(hex.slice(2, 4), 16);
-  const b =
-    hex.length === 3
-      ? parseInt(hex[2] + hex[2], 16)
-      : parseInt(hex.slice(4, 6), 16);
-  return 0.299 * r + 0.587 * g + 0.114 * b;
-}
-
 export function duotoneVariantSettings(
   settings: DitherSettings,
-  variant: "light" | "dark",
+  theme: "light" | "dark",
 ): DitherSettings {
-  const lightBg = "#ffffff";
-  const darkBg = "#000000";
-  const primaryLum = getLuminanceFromHex(settings.primaryColor);
-  const secondaryLum = getLuminanceFromHex(settings.secondaryColor);
-  const dark = primaryLum <= secondaryLum ? settings.primaryColor : settings.secondaryColor;
-  const light = primaryLum <= secondaryLum ? settings.secondaryColor : settings.primaryColor;
+  const swap = (color: string) => {
+    if (theme === "dark" && color.toLowerCase() === "#ffffff") return "#000000";
+    if (theme === "light" && color.toLowerCase() === "#000000") return "#ffffff";
+    return color;
+  };
   return {
     ...settings,
-    primaryColor: dark,
-    secondaryColor: light,
-    backgroundColor: variant === "light" ? lightBg : darkBg,
+    primaryColor: swap(settings.primaryColor),
+    secondaryColor: swap(settings.secondaryColor),
   };
 }
 
@@ -136,7 +117,7 @@ export function ExportBar({
   image,
   imgRef,
   settings,
-  siteTheme,
+  effectiveSettings,
   className,
 }: ExportBarProps) {
   const [downloading, setDownloading] = useState(false);
@@ -178,8 +159,7 @@ export function ExportBar({
     setExportError(null);
     try {
       const baseName = image.name.replace(/\.[^.]+$/, "");
-      const singleSettings =
-        isDuotone && siteTheme ? duotoneVariantSettings(settings, siteTheme) : settings;
+      const singleSettings = effectiveSettings ?? settings;
       const variants: { suffix: string; settings: DitherSettings }[] =
         effectiveExportMode === "dual" && isDuotone
           ? [

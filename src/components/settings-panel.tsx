@@ -34,6 +34,7 @@ import {
 
 interface SettingsPanelProps {
   settings: DitherSettings;
+  effectiveSettings?: DitherSettings;
   onChange: (settings: DitherSettings) => void;
   onReset: () => void;
   className?: string;
@@ -152,6 +153,7 @@ function PaletteSwatch({
 
 export function SettingsPanel({
   settings,
+  effectiveSettings,
   onChange,
   onReset,
   className,
@@ -257,7 +259,7 @@ export function SettingsPanel({
             <div className="flex items-center gap-3">
               <div className="flex flex-col items-center gap-1">
                 <ColorSwatch
-                  color={settings.primaryColor}
+                  color={effectiveSettings?.primaryColor ?? settings.primaryColor}
                   onChange={(c) => update({ primaryColor: c })}
                 />
                 <span className="font-mono text-[9px] text-muted-foreground">
@@ -267,7 +269,7 @@ export function SettingsPanel({
               <div className="flex-1 border-t border-dashed border-border" />
               <div className="flex flex-col items-center gap-1">
                 <ColorSwatch
-                  color={settings.secondaryColor}
+                  color={effectiveSettings?.secondaryColor ?? settings.secondaryColor}
                   onChange={(c) => update({ secondaryColor: c })}
                 />
                 <span className="font-mono text-[9px] text-muted-foreground">
